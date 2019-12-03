@@ -1,0 +1,11 @@
+*.o
+*~
+*test*
+a.out
+*.pdf
+*.odt
+*.txt
+tp2
+.vscode
+*.zip
+
