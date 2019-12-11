@@ -191,6 +191,38 @@ void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unorde
 template <class S, class ES, class A, class EA>
 void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& s, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents) {
 
+	std::list<ES> liste = this->lister_sommets();
+	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
+		distances[*iter] = std::numeric_limits<double>::infinity();
+	}
+
+	distances[s] = 0; // element neutre
+
+	std::priority_queue<std::pair<A, long unsigned>, std::vector<std::pair<A, long unsigned>>, std::greater<std::pair<A, long unsigned>>> Q;
+	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
+		Q.push(std::pair<A, long unsigned>(distances.at(*iter), this->indices.at(*iter)));
+	}
+
+	while (!Q.empty()) {
+		A dist = Q.top().first;
+		long unsigned v = Q.top().second;
+		Q.pop();
+
+		if (dist == std::numeric_limits<A>::infinity()) break;
+
+		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets[v].aretesEntrantes.begin(); iter != this->sommets[v].aretesEntrantes.end(); ++iter) {
+			if (iter->second.active) {
+				long unsigned w = iter->first;
+				double d = dist + iter->second.poids;
+
+				if (d < distances.at(this->sommets[w].etiquette)) {
+					parents[this->sommets[w].etiquette] = this->sommets[v].etiquette;
+					distances[this->sommets[w].etiquette] = d;
+					Q.push(std::pair<A, long unsigned>(d, w));
+				}
+			}
+		}
+	}
 }
 
 #endif

@@ -31,39 +31,33 @@ long Carte::trouverDestIdeale(long noeudorigine, double distancecible, double& d
 
 	std::unordered_map<long, double> distances0;
 	std::unordered_map<long, long> parents0;
-
 	this->graphe.dijkstra_point_a_multipoints(noeudorigine, distances0, parents0);
 
 	std::unordered_map<long, double> distances1;
 	std::unordered_map<long, long> parents1;
+	this->graphe.dijkstra_multipoints_a_point(noeudorigine, distances1, parents1);
 
 	std::list<long> liste = this->graphe.lister_sommets();
 
 	for (std::list<long>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
 
-		std::unordered_map<long, double> distances1_tmp;
-		std::unordered_map<long, long> parents1_tpm;
-
-		this->graphe.dijkstra_point_a_multipoints(*iter, distances1_tmp, parents1_tpm);
-
-		double x = distances0[*iter] + distances1_tmp[noeudorigine];
+		double x = distances0[*iter] + distances1[*iter];
 
 		if (x >= distancecible && x < distancetrouve) {
 			destinationIdeale = *iter;
 			distancetrouve = x;
-			distances1 = distances1_tmp;
-			parents1 = parents1_tpm;
 		}
 	}
 
 	if (destinationIdeale != -1) {
-		for (long noeud = noeudorigine; noeud != destinationIdeale; noeud = parents1[noeud]) {
-			trajet.push_front(noeud);
-		}
-		for (long noeud = destinationIdeale; noeud != noeudorigine; noeud = parents0[noeud]) {
+		for (long noeud = destinationIdeale; noeud != noeudorigine; noeud = parents0.at(noeud)) {
 			trajet.push_front(noeud);
 		}
 		trajet.push_front(noeudorigine);
+		for (long noeud = parents1.at(destinationIdeale); noeud != noeudorigine; noeud = parents1.at(noeud)) {
+			trajet.push_back(noeud);
+		}
+		trajet.push_back(noeudorigine);
 	}
 
 	return destinationIdeale;
