@@ -33,8 +33,8 @@ class Graphe {
 		// std::set<long> obtenir_sommets_inaccessibles() const;
 		// void retirer_sommets_inaccessibles();
 
-		void dijkstra_point_a_multipoints(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&);
-		void dijkstra_multipoints_a_point(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&);
+		void dijkstra_point_a_multipoints(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&);
+		void dijkstra_multipoints_a_point(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&);
 		void floyd_warshall();
 		void a_etoile(const ES&, const ES&);
 
@@ -152,14 +152,13 @@ const long unsigned Graphe<S, ES, A, EA>::taille() const {
 }
 
 template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents) {
+void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents, const A& distMax) {
 
 	std::list<ES> liste = this->lister_sommets();
 	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
 		distances[*iter] = std::numeric_limits<double>::infinity();
 	}
-
-	distances[s] = 0; // element neutre
+	distances[s] = 0; // element neutre du + de A
 
 	std::priority_queue<std::pair<A, long unsigned>, std::vector<std::pair<A, long unsigned>>, std::greater<std::pair<A, long unsigned>>> Q;
 	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
@@ -171,16 +170,16 @@ void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unorde
 		long unsigned v = Q.top().second;
 		Q.pop();
 
-		if (dist == std::numeric_limits<A>::infinity()) break;
+		if (dist >= distMax) break;
 
-		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets[v].aretesSortantes.begin(); iter != this->sommets[v].aretesSortantes.end(); ++iter) {
+		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets.at(v).aretesSortantes.begin(); iter != this->sommets.at(v).aretesSortantes.end(); ++iter) {
 			if (iter->second.active) {
 				long unsigned w = iter->first;
 				double d = dist + iter->second.poids;
 
-				if (d < distances.at(this->sommets[w].etiquette)) {
-					parents[this->sommets[w].etiquette] = this->sommets[v].etiquette;
-					distances[this->sommets[w].etiquette] = d;
+				if (d < distances.at(this->sommets.at(w).etiquette)) {
+					parents[this->sommets.at(w).etiquette] = this->sommets.at(v).etiquette;
+					distances[this->sommets.at(w).etiquette] = d;
 					Q.push(std::pair<A, long unsigned>(d, w));
 				}
 			}
@@ -189,14 +188,13 @@ void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unorde
 }
 
 template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& s, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents) {
+void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& s, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents, const A& distMax) {
 
 	std::list<ES> liste = this->lister_sommets();
 	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
 		distances[*iter] = std::numeric_limits<double>::infinity();
 	}
-
-	distances[s] = 0; // element neutre
+	distances[s] = 0; // element neutre du + de A
 
 	std::priority_queue<std::pair<A, long unsigned>, std::vector<std::pair<A, long unsigned>>, std::greater<std::pair<A, long unsigned>>> Q;
 	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
@@ -208,16 +206,16 @@ void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& s, std::unorde
 		long unsigned v = Q.top().second;
 		Q.pop();
 
-		if (dist == std::numeric_limits<A>::infinity()) break;
+		if (dist >= distMax) break;
 
-		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets[v].aretesEntrantes.begin(); iter != this->sommets[v].aretesEntrantes.end(); ++iter) {
+		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets.at(v).aretesEntrantes.begin(); iter != this->sommets.at(v).aretesEntrantes.end(); ++iter) {
 			if (iter->second.active) {
 				long unsigned w = iter->first;
 				double d = dist + iter->second.poids;
 
-				if (d < distances.at(this->sommets[w].etiquette)) {
-					parents[this->sommets[w].etiquette] = this->sommets[v].etiquette;
-					distances[this->sommets[w].etiquette] = d;
+				if (d < distances.at(this->sommets.at(w).etiquette)) {
+					parents[this->sommets.at(w).etiquette] = this->sommets.at(v).etiquette;
+					distances[this->sommets.at(w).etiquette] = d;
 					Q.push(std::pair<A, long unsigned>(d, w));
 				}
 			}
