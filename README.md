@@ -1,2 +1,2 @@
 # Marathon
-Path finding a graph structure
+Path finding using a graph structure
