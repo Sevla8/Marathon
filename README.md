@@ -1,2 +1,2 @@
 # Marathon
-path finding using Dijkstra algorithm
+Path finding a graph structure
