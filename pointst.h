@@ -18,6 +18,7 @@ class PointST {
 		PointST(double latitude_, double longitude_); // angles en radians
 		PointST(const PointST&);
 		double distance(const PointST&) const;
+		bool operator<(const PointST&) const;
 	private:
 		double latitude;  // angle en radians
 		double longitude; // angle en radians
