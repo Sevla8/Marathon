@@ -14,7 +14,7 @@ class Carte {
 	public:
 		void ajouter_noeud(long, const PointST&);
 		void ajouter_route(const std::string&, const std::list<long>&);
-		// void retirer_noeuds_inaccessibles();
+		void retirer_noeuds_inaccessibles();
 		void changerDisponibilites(const std::list<std::string>&, bool);
 		long trouverDestIdeale(long, double, double&, std::list<long>&);
 	private:

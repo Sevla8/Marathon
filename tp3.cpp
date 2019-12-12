@@ -61,8 +61,6 @@ int tp3(Carte& carte, istream& isrequetes) {
 		}
 	}
 
-	// carte.test();
-
 	return 0;
 }
 

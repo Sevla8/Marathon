@@ -18,6 +18,7 @@
 template <class S, class ES, class A, class EA>
 class Graphe {
 	public:
+		// Opérations de base
 		void ajouter_sommet(const S&, const ES&);
 		void ajouter_arete(const EA&, const A&, const ES&, const ES&);
 		const S& obtenir_sommet(const ES&) const;
@@ -29,16 +30,18 @@ class Graphe {
 		bool existe_arete_sortante(const ES&, const ES&) const;
 		bool existe_arete_entrante(const ES&, const ES&) const;
 		const long unsigned taille() const;
-
+		// Recherches et Parcours
+		// Extraction de composantes connexes
 		// std::set<long> obtenir_sommets_inaccessibles() const;
-		// void retirer_sommets_inaccessibles();
-
+		void retirer_sommets_inaccessibles();
+		// Recherche de chemin
 		void dijkstra_point_a_multipoints(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&);
 		void dijkstra_multipoints_a_point(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&);
 		void floyd_warshall();
-		void a_etoile(const ES&, const ES&);
-
-		// recouvrement minimal
+		void a_etoile(const ES&, const ES&, std::list<ES>&);
+		// Recouvrement minimal
+		// prim-jarnik
+		// kruskal
 	private:
 		// std::list<std::set<long>> tarjan_parcours_profondeur() const;
 		// void parcours_profondeur(const typename std::unordered_map<long, typename Graphe<S, ES, A, EA>::Sommet>::const_iterator&, long int&, std::stack<long>&, std::list<std::set<long>>&) const;
@@ -48,6 +51,8 @@ class Graphe {
 			std::unordered_map<long unsigned, typename Graphe<S, ES, A, EA>::Arete> aretesSortantes;
 			std::unordered_map<long unsigned, typename Graphe<S, ES, A, EA>::Arete> aretesEntrantes;
 			ES etiquette;
+			mutable A cout;
+			mutable A heuristic;
 		};
 		struct Arete {
 			Arete();
@@ -152,6 +157,11 @@ const long unsigned Graphe<S, ES, A, EA>::taille() const {
 }
 
 template <class S, class ES, class A, class EA>
+void Graphe<S, ES, A, EA>::retirer_sommets_inaccessibles() {
+	// à compléter
+}
+
+template <class S, class ES, class A, class EA>
 void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents, const A& distMax) {
 
 	std::list<ES> liste = this->lister_sommets();
@@ -219,6 +229,45 @@ void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& s, std::unorde
 					Q.push(std::pair<A, long unsigned>(d, w));
 				}
 			}
+		}
+	}
+}
+
+template <class S, class ES, class A, class EA>
+void floyd_warshall() {
+	// à compléter
+}
+
+template <class S, class ES, class A, class EA>
+void Graphe<S, ES, A, EA>::a_etoile(const ES& depart, const ES& arrive, std::list<ES>& chemin) {
+	for (typename std::vector<Sommet>::const_iterator iter = this->sommets.begin(); iter != this->sommets.end(); ++iter) {
+		*iter.cout = 0;
+		*iter.heuristic = 0;
+	}
+	std::set<long unsigned> closedList;
+	std::priority_queue<std::pair<A, long unsigned>, std::vector<std::pair<A, long unsigned>>, std::greater<std::pair<A, long unsigned>>> openList;
+	openList.push(std::pair<A, long unsigned>(this->sommets.at(this->indices.at(depart)).heuristic, this->indices.at(depart)));
+
+	while (!openList.empty()) {
+		A heuristic = openList.top().first;
+		long unsigned u = openList.top().second;
+		openList.pop();
+
+		if (this->sommets.at(u).etiquette == arrive) {
+			// reconstituer chemin
+			// terminer programme
+		}
+
+		closedList.insert(u);
+
+		for (typename std::unordered_map<long unsigned, Arete> iter = this->sommets.at(u).aretesSortantes.begin(); iter != this->sommets.at(u).aretesSortantes.end(); ++iter) {
+			long unsigned v = iter->first;
+
+			// if (closedList.find(v) != closedList.end()) ;
+
+			this->sommets.at(v).cout = this->sommets.at(v).cout + 1;
+			this->sommets.at(v).heuristic = this->sommets.at(v).cout + iter->second.poids;
+			openList.push(std::pair<A, long unsigned>(this->sommets.at(v).heuristic, v));
 		}
 	}
 }
