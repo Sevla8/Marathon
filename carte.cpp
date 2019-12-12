@@ -26,6 +26,13 @@ void Carte::changerDisponibilites(const std::list<std::string>& nomsroute, bool 
 }
 
 long Carte::trouverDestIdeale(long noeudorigine, double distancecible, double& distancetrouve, std::list<long>& trajet) {
+	if (distancecible == 0) {
+		trajet.push_back(noeudorigine);
+		distancetrouve = 0;
+
+		return noeudorigine;
+	}
+
 	long destinationIdeale = -1;
 	distancetrouve = std::numeric_limits<double>::infinity();
 
