@@ -32,8 +32,8 @@ class Graphe {
 		const long unsigned taille() const;
 		// Recherches et Parcours
 		// Extraction de composantes connexes
-		// std::set<long> obtenir_sommets_inaccessibles() const;
-		void retirer_sommets_inaccessibles();
+		std::list<ES> extraction_composantes_connexes() const;
+		// void retirer_sommets_inaccessibles();
 		// Recherche de chemin
 		void dijkstra_point_a_multipoints(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&);
 		void dijkstra_multipoints_a_point(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&);
@@ -51,8 +51,6 @@ class Graphe {
 			std::unordered_map<long unsigned, typename Graphe<S, ES, A, EA>::Arete> aretesSortantes;
 			std::unordered_map<long unsigned, typename Graphe<S, ES, A, EA>::Arete> aretesEntrantes;
 			ES etiquette;
-			mutable A cout;
-			mutable A heuristic;
 		};
 		struct Arete {
 			Arete();
@@ -92,13 +90,13 @@ const S& Graphe<S, ES, A, EA>::obtenir_sommet(const ES& etiquette) const {
 }
 
 template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::modifier_etat_arete(const EA& e, const bool& act) {
+void Graphe<S, ES, A, EA>::modifier_etat_arete(const EA& e, const bool& a) {
 	for (typename std::vector<Sommet>::iterator iter0 = this->sommets.begin(); iter0 != this->sommets.end(); ++iter0) {
 		for (typename std::unordered_map<long unsigned, Arete>::iterator iter1 = (*iter0).aretesSortantes.begin(); iter1 != (*iter0).aretesSortantes.end(); ++iter1) {
-			if (iter1->second.etiquette == e) iter1->second.active = act;
+			if (iter1->second.etiquette == e) iter1->second.active = a;
 		}
 		for (typename std::unordered_map<long unsigned, Arete>::iterator iter1 = (*iter0).aretesEntrantes.begin(); iter1 != (*iter0).aretesEntrantes.end(); ++iter1) {
-			if (iter1->second.etiquette == e) iter1->second.active = act;
+			if (iter1->second.etiquette == e) iter1->second.active = a;
 		}
 	}
 }
@@ -157,8 +155,12 @@ const long unsigned Graphe<S, ES, A, EA>::taille() const {
 }
 
 template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::retirer_sommets_inaccessibles() {
-	// à compléter
+std::list<ES> Graphe<S, ES, A, EA>::extraction_composantes_connexes() const {
+	std::list<ES> resultat;
+
+
+
+	return resultat;
 }
 
 template <class S, class ES, class A, class EA>
@@ -180,7 +182,7 @@ void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unorde
 		long unsigned v = Q.top().second;
 		Q.pop();
 
-		if (dist >= distMax) break;
+		if (dist > distMax) break;
 
 		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets.at(v).aretesSortantes.begin(); iter != this->sommets.at(v).aretesSortantes.end(); ++iter) {
 			if (iter->second.active) {
@@ -216,7 +218,7 @@ void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& s, std::unorde
 		long unsigned v = Q.top().second;
 		Q.pop();
 
-		if (dist >= distMax) break;
+		if (dist > distMax) break;
 
 		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets.at(v).aretesEntrantes.begin(); iter != this->sommets.at(v).aretesEntrantes.end(); ++iter) {
 			if (iter->second.active) {

@@ -15,10 +15,6 @@ void Carte::ajouter_route(const std::string& nomroute, const std::list<long>& no
 	}
 }
 
-void Carte::retirer_noeuds_inaccessibles() {
-	this->graphe.retirer_sommets_inaccessibles();
-}
-
 void Carte::changerDisponibilites(const std::list<std::string>& nomsroute, bool estdisponible) {
 	for (std::list<std::string>::const_iterator iter = nomsroute.begin(); iter != nomsroute.end(); ++iter) {
 		this->graphe.modifier_etat_arete(*iter, estdisponible);
