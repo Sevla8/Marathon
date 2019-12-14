@@ -35,13 +35,13 @@ class Graphe {
 			S objet;	// doit avoir une fonction: A S::distance(const S&) const;
 			std::unordered_map<Sommet*, typename Graphe<S, ES, A, EA>::Arete*> aretesSortantes;
 			std::unordered_map<Sommet*, typename Graphe<S, ES, A, EA>::Arete*> aretesEntrantes;
-			ES etiquette;
+			ES etiquette;	// etiquette caractérise sommet
 		};
 		struct Arete {
 			Arete(const A&, const bool&, const EA&);
 			A poids;
 			bool active;
-			EA etiquette;
+			EA etiquette;	// etiquette ¬caractérise arete
 		};
 		std::unordered_map<ES, Sommet*> sommets;
 		std::unordered_map<EA, std::list<Arete*>> aretes;
@@ -122,7 +122,7 @@ void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& depart, std::u
 			Q.push(std::pair<A, ES>(distances[iter->first], iter->first));
 		}	//
 	}
-	distances[depart] = 0; // element neutre du + de A
+	distances[depart] = 0; // ¬ 0, element neutre du + de A
 	Q.push(std::pair<A, ES>(0, depart));
 
 	while (!Q.empty()) {
@@ -158,7 +158,7 @@ void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& depart, std::u
 			Q.push(std::pair<A, ES>(distances[iter->first], iter->first));
 		}	//
 	}
-	distances[depart] = 0; // element neutre du + de A
+	distances[depart] = 0; // ¬ 0, element neutre du + de A
 	Q.push(std::pair<A, ES>(0, depart));
 
 	while (!Q.empty()) {
