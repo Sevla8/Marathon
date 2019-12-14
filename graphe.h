@@ -18,181 +18,129 @@
 template <class S, class ES, class A, class EA>
 class Graphe {
 	public:
-		// Opérations de base
+		Graphe();
+		~Graphe();
 		void ajouter_sommet(const S&, const ES&);
-		void ajouter_arete(const EA&, const A&, const ES&, const ES&);
+		void ajouter_arete(const EA&, const A&, const bool&, const ES&, const ES&);
 		const S& obtenir_sommet(const ES&) const;
-		void modifier_etat_arete(const EA&, const bool&);
 		std::list<ES> lister_sommets() const;
-		std::set<EA> lister_aretes() const;
-		std::set<EA> lister_aretes_sortantes(const ES&) const;
-		std::set<EA> lister_aretes_entrantes(const ES&) const;
-		bool existe_arete_sortante(const ES&, const ES&) const;
-		bool existe_arete_entrante(const ES&, const ES&) const;
-		const long unsigned taille() const;
-		// Recherches et Parcours
-		// Extraction de composantes connexes
-		std::list<ES> extraction_composantes_connexes() const;
-		// void retirer_sommets_inaccessibles();
-		// Recherche de chemin
-		void dijkstra_point_a_multipoints(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&);
-		void dijkstra_multipoints_a_point(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&);
-		void floyd_warshall();
-		void a_etoile(const ES&, const ES&, std::list<ES>&);
-		// Recouvrement minimal
-		// prim-jarnik
-		// kruskal
+		bool contient_sommet(const ES&) const;
+		void modifier_etat_arete(const EA&, const bool&);
+		void dijkstra_point_a_multipoints(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&) const;
+		void dijkstra_multipoints_a_point(const ES&, std::unordered_map<ES, A>&, std::unordered_map<ES, ES>&, const A&) const;
+		Graphe<S, ES, A, EA> sous_graphe(const ES&, const A&) const;
 	private:
-		// std::list<std::set<long>> tarjan_parcours_profondeur() const;
-		// void parcours_profondeur(const typename std::unordered_map<long, typename Graphe<S, ES, A, EA>::Sommet>::const_iterator&, long int&, std::stack<long>&, std::list<std::set<long>>&) const;
 		struct Sommet {
 			Sommet(const S&, const ES&);
-			S objet;
-			std::unordered_map<long unsigned, typename Graphe<S, ES, A, EA>::Arete> aretesSortantes;
-			std::unordered_map<long unsigned, typename Graphe<S, ES, A, EA>::Arete> aretesEntrantes;
+			S objet;	// doit avoir une fonction: A S::distance(const S&) const;
+			std::unordered_map<Sommet*, typename Graphe<S, ES, A, EA>::Arete*> aretesSortantes;
+			std::unordered_map<Sommet*, typename Graphe<S, ES, A, EA>::Arete*> aretesEntrantes;
 			ES etiquette;
 		};
 		struct Arete {
-			Arete();
+			Arete(const A&, const bool&, const EA&);
 			A poids;
 			bool active;
 			EA etiquette;
 		};
-		std::unordered_map<ES, long unsigned> indices;
-		std::vector<Sommet> sommets;
+		std::unordered_map<ES, Sommet*> sommets;
+		std::unordered_map<EA, std::list<Arete*>> aretes;
 };
+
+template <class S, class ES, class A, class EA>
+Graphe<S, ES, A, EA>::Graphe() {}
+
+template <class S, class ES, class A, class EA>
+Graphe<S, ES, A, EA>::~Graphe() {
+	for (typename std::unordered_map<EA, std::list<Arete*>>::iterator iter0 = this->aretes.begin(); iter0 != this->aretes.end(); ++iter0) {
+		for (typename std::list<Arete*>::iterator iter1 = iter0->second.begin(); iter1 != iter0->second.end(); ++iter1) {
+			delete *iter1;
+		}
+	}
+	for (typename std::unordered_map<ES, Sommet*>::iterator iter = this->sommets.begin(); iter != this->sommets.end(); ++iter) {
+		delete iter->second;
+	}
+}
 
 template <class S, class ES, class A, class EA>
 Graphe<S, ES, A, EA>::Sommet::Sommet(const S& s, const ES& e) : objet(s), etiquette(e) {}
 
 template <class S, class ES, class A, class EA>
-Graphe<S, ES, A, EA>::Arete::Arete() : active(true) {}
+Graphe<S, ES, A, EA>::Arete::Arete(const A& p, const bool& a, const EA& e) : poids(p), active(a), etiquette(e) {}
 
 template <class S, class ES, class A, class EA>
 void Graphe<S, ES, A, EA>::ajouter_sommet(const S& s, const ES& e) {
-	assert(this->indices.find(e) == this->indices.end());
-	long unsigned indice = this->indices.size();
-	this->indices[e] = indice;
-	this->sommets.push_back(Sommet(s, e));
+	// assert(this->sommets.find(e) == this->sommets.end());
+	Sommet* sommet = new Sommet(s, e);
+	this->sommets[e] = sommet;
 }
 
 template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::ajouter_arete(const EA& e, const A& p, const ES& e1, const ES& e2) {
-	this->sommets[this->indices.at(e1)].aretesSortantes[this->indices.at(e2)].poids = p;
-	this->sommets[this->indices.at(e1)].aretesSortantes[this->indices.at(e2)].etiquette = e;
-	this->sommets[this->indices.at(e2)].aretesEntrantes[this->indices.at(e1)].poids = p;
-	this->sommets[this->indices.at(e2)].aretesEntrantes[this->indices.at(e1)].etiquette = e;
+void Graphe<S, ES, A, EA>::ajouter_arete(const EA& e, const A& p, const bool& a, const ES& e1, const ES& e2) {
+	// assert(this->sommets.find(e1) != this->sommets.end());
+	// assert(this->sommets.find(e2) != this->sommets.end());
+	Arete* arete = new Arete(p, a, e);
+	(*this->sommets.at(e1)).aretesSortantes[this->sommets.at(e2)] = arete;
+	(*this->sommets.at(e2)).aretesEntrantes[this->sommets.at(e1)] = arete;
+	this->aretes[e].push_back(arete);
 }
 
 template <class S, class ES, class A, class EA>
-const S& Graphe<S, ES, A, EA>::obtenir_sommet(const ES& etiquette) const {
-	return this->sommets.at(this->indices.at(etiquette)).objet;
-}
-
-template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::modifier_etat_arete(const EA& e, const bool& a) {
-	for (typename std::vector<Sommet>::iterator iter0 = this->sommets.begin(); iter0 != this->sommets.end(); ++iter0) {
-		for (typename std::unordered_map<long unsigned, Arete>::iterator iter1 = (*iter0).aretesSortantes.begin(); iter1 != (*iter0).aretesSortantes.end(); ++iter1) {
-			if (iter1->second.etiquette == e) iter1->second.active = a;
-		}
-		for (typename std::unordered_map<long unsigned, Arete>::iterator iter1 = (*iter0).aretesEntrantes.begin(); iter1 != (*iter0).aretesEntrantes.end(); ++iter1) {
-			if (iter1->second.etiquette == e) iter1->second.active = a;
-		}
-	}
+const S& Graphe<S, ES, A, EA>::obtenir_sommet(const ES& e) const {
+	return this->sommets.at(e)->objet;
 }
 
 template <class S, class ES, class A, class EA>
 std::list<ES> Graphe<S, ES, A, EA>::lister_sommets() const {
 	std::list<ES> liste;
-	for (typename std::vector<Sommet>::const_iterator iter = this->sommets.begin(); iter != this->sommets.end(); ++iter) {
-		liste.push_back((*iter).etiquette);
+	for (typename std::unordered_map<ES, Sommet*>::const_iterator iter = this->sommets.begin(); iter != this->sommets.end(); ++iter) {
+		liste.push_back(iter->first);
 	}
 	return liste;
 }
 
 template <class S, class ES, class A, class EA>
-std::set<EA> Graphe<S, ES, A, EA>::lister_aretes() const {
-	std::set<EA> liste;
-	for (typename std::vector<Sommet>::const_iterator iter0 = this->sommets.begin(); iter0 != this->sommets.end(); ++iter0) {
-		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter1 = (*iter0).aretesSortantes.begin(); iter1 != (*iter0).aretesSortantes.end(); ++iter1) {
-			liste.insert(iter1->second.etiquette);
-		}
+bool Graphe<S, ES, A, EA>::contient_sommet(const ES& e) const {
+	return this->sommets.find(e) != this->sommets.end();
+}
+
+template <class S, class ES, class A, class EA>
+void Graphe<S, ES, A, EA>::modifier_etat_arete(const EA& e, const bool& a) {
+	for (typename std::list<Arete*>::const_iterator iter = this->aretes.at(e).begin(); iter != this->aretes.at(e).end(); ++iter) {
+		(*iter)->active = a;
 	}
-	return liste;
 }
 
 template <class S, class ES, class A, class EA>
-std::set<EA> Graphe<S, ES, A, EA>::lister_aretes_sortantes(const ES& etiquette) const {
-	std::set<EA> liste;
-	for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets[this->indices.at(etiquette)].aretesSortantes.begin(); iter != this->sommets[this->indices.at(etiquette)].aretesSortantes.end(); ++iter) {
-		liste.insert(iter->second.etiquette);
+void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& depart, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents, const A& distMax) const{
+
+	std::priority_queue<std::pair<A, ES>, std::vector<std::pair<A, ES>>, std::greater<std::pair<A, ES>>> Q;
+
+	for (typename std::unordered_map<ES, Sommet*>::const_iterator iter = this->sommets.begin(); iter != this->sommets.end(); ++iter) {
+		if (this->sommets.at(depart)->objet.distance(iter->second->objet) <= distMax) {	//
+			distances[iter->first] = std::numeric_limits<double>::infinity();
+			Q.push(std::pair<A, ES>(distances[iter->first], iter->first));
+		}	//
 	}
-	return liste;
-}
-
-template <class S, class ES, class A, class EA>
-std::set<EA> Graphe<S, ES, A, EA>::lister_aretes_entrantes(const ES& etiquette) const {
-	std::set<EA> liste;
-	for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets[this->indices.at(etiquette)].aretesEntrantes.begin(); iter != this->sommets[this->indices.at(etiquette)].aretesEntrantes.end(); ++iter) {
-		liste.insert(iter->second.etiquette);
-	}
-	return liste;
-}
-
-template <class S, class ES, class A, class EA>
-bool Graphe<S, ES, A, EA>::existe_arete_sortante(const ES& e1, const ES& e2) const {
-	return this->sommets[this->indices.at(e1)].aretesSortantes.find(this->sommets[this->indices.at(e2)]) != this->sommets[this->indices.at(e1)].aretesSortantes.end();
-}
-
-template <class S, class ES, class A, class EA>
-bool Graphe<S, ES, A, EA>::existe_arete_entrante(const ES& e1, const ES& e2) const {
-	return this->sommets[this->indices.at(e1)].aretesEntrantes.find(this->sommets[this->indices.at(e2)]) != this->sommets[this->indices.at(e1)].aretesEntrantes.end();
-}
-
-template <class S, class ES, class A, class EA>
-const long unsigned Graphe<S, ES, A, EA>::taille() const {
-	return this->sommets.size();
-}
-
-template <class S, class ES, class A, class EA>
-std::list<ES> Graphe<S, ES, A, EA>::extraction_composantes_connexes() const {
-	std::list<ES> resultat;
-
-
-
-	return resultat;
-}
-
-template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents, const A& distMax) {
-
-	std::list<ES> liste = this->lister_sommets();
-	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
-		distances[*iter] = std::numeric_limits<double>::infinity();
-	}
-	distances[s] = 0; // element neutre du + de A
-
-	std::priority_queue<std::pair<A, long unsigned>, std::vector<std::pair<A, long unsigned>>, std::greater<std::pair<A, long unsigned>>> Q;
-	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
-		Q.push(std::pair<A, long unsigned>(distances.at(*iter), this->indices.at(*iter)));
-	}
+	distances[depart] = 0; // element neutre du + de A
+	Q.push(std::pair<A, ES>(0, depart));
 
 	while (!Q.empty()) {
 		A dist = Q.top().first;
-		long unsigned v = Q.top().second;
+		ES v = Q.top().second;
 		Q.pop();
 
-		if (dist > distMax) break;
+		if (dist >= distMax) break;
 
-		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets.at(v).aretesSortantes.begin(); iter != this->sommets.at(v).aretesSortantes.end(); ++iter) {
-			if (iter->second.active) {
-				long unsigned w = iter->first;
-				double d = dist + iter->second.poids;
+		for (typename std::unordered_map<Graphe<S, ES, A, EA>::Sommet*, Graphe<S, ES, A, EA>::Arete*>::const_iterator iter = this->sommets.at(v)->aretesSortantes.begin(); iter != this->sommets.at(v)->aretesSortantes.end(); ++iter) {
+			if (iter->second->active) {
+				ES w = iter->first->etiquette;
+				double d = dist + iter->second->poids;
 
-				if (d < distances.at(this->sommets.at(w).etiquette)) {
-					parents[this->sommets.at(w).etiquette] = this->sommets.at(v).etiquette;
-					distances[this->sommets.at(w).etiquette] = d;
-					Q.push(std::pair<A, long unsigned>(d, w));
+				if (distances.find(w) != distances.end() && d < distances.at(w)) {
+					parents[w] = v;
+					distances[w] = d;
+					Q.push(std::pair<A, ES>(d, w));
 				}
 			}
 		}
@@ -200,35 +148,35 @@ void Graphe<S, ES, A, EA>::dijkstra_point_a_multipoints(const ES& s, std::unorde
 }
 
 template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& s, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents, const A& distMax) {
+void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& depart, std::unordered_map<ES, A>& distances, std::unordered_map<ES, ES>& parents, const A& distMax) const {
 
-	std::list<ES> liste = this->lister_sommets();
-	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
-		distances[*iter] = std::numeric_limits<double>::infinity();
-	}
-	distances[s] = 0; // element neutre du + de A
+	std::priority_queue<std::pair<A, ES>, std::vector<std::pair<A, ES>>, std::greater<std::pair<A, ES>>> Q;
 
-	std::priority_queue<std::pair<A, long unsigned>, std::vector<std::pair<A, long unsigned>>, std::greater<std::pair<A, long unsigned>>> Q;
-	for (typename std::list<ES>::const_iterator iter = liste.begin(); iter != liste.end(); ++iter) {
-		Q.push(std::pair<A, long unsigned>(distances.at(*iter), this->indices.at(*iter)));
+	for (typename std::unordered_map<ES, Sommet*>::const_iterator iter = this->sommets.begin(); iter != this->sommets.end(); ++iter) {
+		if (this->sommets.at(depart)->objet.distance(iter->second->objet) <= distMax) {	//
+			distances[iter->first] = std::numeric_limits<double>::infinity();
+			Q.push(std::pair<A, ES>(distances[iter->first], iter->first));
+		}	//
 	}
+	distances[depart] = 0; // element neutre du + de A
+	Q.push(std::pair<A, ES>(0, depart));
 
 	while (!Q.empty()) {
 		A dist = Q.top().first;
-		long unsigned v = Q.top().second;
+		ES v = Q.top().second;
 		Q.pop();
 
-		if (dist > distMax) break;
+		if (dist >= distMax) break;
 
-		for (typename std::unordered_map<long unsigned, Arete>::const_iterator iter = this->sommets.at(v).aretesEntrantes.begin(); iter != this->sommets.at(v).aretesEntrantes.end(); ++iter) {
-			if (iter->second.active) {
-				long unsigned w = iter->first;
-				double d = dist + iter->second.poids;
+		for (typename std::unordered_map<Graphe<S, ES, A, EA>::Sommet*, Graphe<S, ES, A, EA>::Arete*>::const_iterator iter = this->sommets.at(v)->aretesEntrantes.begin(); iter != this->sommets.at(v)->aretesEntrantes.end(); ++iter) {
+			if (iter->second->active) {
+				ES w = iter->first->etiquette;
+				double d = dist + iter->second->poids;
 
-				if (d < distances.at(this->sommets.at(w).etiquette)) {
-					parents[this->sommets.at(w).etiquette] = this->sommets.at(v).etiquette;
-					distances[this->sommets.at(w).etiquette] = d;
-					Q.push(std::pair<A, long unsigned>(d, w));
+				if (distances.find(w) != distances.end() &&d < distances.at(w)) {
+					parents[w] = v;
+					distances[w] = d;
+					Q.push(std::pair<A, ES>(d, w));
 				}
 			}
 		}
@@ -236,42 +184,25 @@ void Graphe<S, ES, A, EA>::dijkstra_multipoints_a_point(const ES& s, std::unorde
 }
 
 template <class S, class ES, class A, class EA>
-void floyd_warshall() {
-	// à compléter
-}
+Graphe<S, ES, A, EA> Graphe<S, ES, A, EA>::sous_graphe(const ES& e, const A& d) const {
+	Graphe<S, ES, A, EA> g;
+	S objet = this->obtenir_sommet(e);
 
-template <class S, class ES, class A, class EA>
-void Graphe<S, ES, A, EA>::a_etoile(const ES& depart, const ES& arrive, std::list<ES>& chemin) {
-	for (typename std::vector<Sommet>::const_iterator iter = this->sommets.begin(); iter != this->sommets.end(); ++iter) {
-		*iter.cout = 0;
-		*iter.heuristic = 0;
-	}
-	std::set<long unsigned> closedList;
-	std::priority_queue<std::pair<A, long unsigned>, std::vector<std::pair<A, long unsigned>>, std::greater<std::pair<A, long unsigned>>> openList;
-	openList.push(std::pair<A, long unsigned>(this->sommets.at(this->indices.at(depart)).heuristic, this->indices.at(depart)));
-
-	while (!openList.empty()) {
-		A heuristic = openList.top().first;
-		long unsigned u = openList.top().second;
-		openList.pop();
-
-		if (this->sommets.at(u).etiquette == arrive) {
-			// reconstituer chemin
-			// terminer programme
-		}
-
-		closedList.insert(u);
-
-		for (typename std::unordered_map<long unsigned, Arete> iter = this->sommets.at(u).aretesSortantes.begin(); iter != this->sommets.at(u).aretesSortantes.end(); ++iter) {
-			long unsigned v = iter->first;
-
-			// if (closedList.find(v) != closedList.end()) ;
-
-			this->sommets.at(v).cout = this->sommets.at(v).cout + 1;
-			this->sommets.at(v).heuristic = this->sommets.at(v).cout + iter->second.poids;
-			openList.push(std::pair<A, long unsigned>(this->sommets.at(v).heuristic, v));
+	for (typename std::unordered_map<ES, Sommet*>::const_iterator iter = this->sommets.begin(); iter != this->sommets.end(); ++iter) {
+		if (iter->second->objet.distance(objet) < 2 * d) {
+			g.ajouter_sommet(iter->second->objet, iter->second->etiquette);
 		}
 	}
+
+	for (typename std::unordered_map<ES, Sommet*>::const_iterator iter0 = g.sommets.begin(); iter0 != g.sommets.end(); ++iter0) {
+		for (typename std::unordered_map<Sommet*, typename Graphe<S, ES, A, EA>::Arete*>::const_iterator iter1 = this->sommets.at(iter0->first)->aretesSortantes.begin(); iter1 != this->sommets.at(iter0->first)->aretesSortantes.end(); ++iter1) {
+			if (g.contient_sommet(iter1->first->etiquette)) {
+				g.ajouter_arete(iter1->second->etiquette, iter1->second->poids, iter1->second->active, iter0->first, iter1->first->etiquette);
+			}
+		}
+	}
+
+	return g;
 }
 
 #endif

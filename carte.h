@@ -1,6 +1,8 @@
 #ifndef _CARTE__H_
 #define _CARTE__H_
 
+#define CONSTANTE 100
+
 #include <unordered_map>
 #include <istream>
 #include <limits>
