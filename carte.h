@@ -1,7 +1,7 @@
 #ifndef _CARTE__H_
 #define _CARTE__H_
 
-#define CONSTANTE 100
+#define MARGE_DE_SECURITE 700
 
 #include <unordered_map>
 #include <istream>

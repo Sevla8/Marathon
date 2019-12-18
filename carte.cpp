@@ -10,8 +10,7 @@ void Carte::ajouter_route(const std::string& nomroute, const std::list<long>& no
 		++iter;
 		if (iter == noeuds.end()) break;
 		long tmp2 = *iter;
-		double poids = this->graphe.obtenir_sommet(tmp1).distance(this->graphe.obtenir_sommet(tmp2)); // optimisable
-		this->graphe.ajouter_arete(nomroute, poids, true, tmp1, tmp2);
+		this->graphe.ajouter_arete(nomroute, tmp1, tmp2);
 	}
 }
 
@@ -22,23 +21,17 @@ void Carte::changerDisponibilites(const std::list<std::string>& nomsroute, bool 
 }
 
 long Carte::trouverDestIdeale(long noeudorigine, double distancecible, double& distancetrouve, std::list<long>& trajet) {
-	if (distancecible == 0) {
-		trajet.push_back(noeudorigine);
-		distancetrouve = 0;
-
-		return noeudorigine;
-	}
 
 	long destinationIdeale = -1;
 	distancetrouve = std::numeric_limits<double>::infinity();
 
 	std::unordered_map<long, double> distances0;
 	std::unordered_map<long, long> parents0;
-	this->graphe.dijkstra_point_a_multipoints(noeudorigine, distances0, parents0, distancecible*CONSTANTE);
+	this->graphe.dijkstra_point_a_multipoints_calcul(noeudorigine, distances0, parents0, distancecible+7000);
 
 	std::unordered_map<long, double> distances1;
 	std::unordered_map<long, long> parents1;
-	this->graphe.dijkstra_multipoints_a_point(noeudorigine, distances1, parents1, distancecible*CONSTANTE);
+	this->graphe.dijkstra_multipoints_a_point_calcul(noeudorigine, distances1, parents1, distancecible+7000);
 
 	std::unordered_map<long, double>::const_iterator iter0 = distances0.begin();
 	std::unordered_map<long, double>::const_iterator iter1 = distances1.begin();
@@ -59,10 +52,12 @@ long Carte::trouverDestIdeale(long noeudorigine, double distancecible, double& d
 			trajet.push_front(noeud);
 		}
 		trajet.push_front(noeudorigine);
-		for (long noeud = parents1.at(destinationIdeale); noeud != noeudorigine; noeud = parents1.at(noeud)) {
-			trajet.push_back(noeud);
+		if (parents1.find(destinationIdeale) != parents1.end()) {	// cas où distancecible = 0
+			for (long noeud = parents1.at(destinationIdeale); noeud != noeudorigine; noeud = parents1.at(noeud)) {
+				trajet.push_back(noeud);
+			}
+			trajet.push_back(noeudorigine);
 		}
-		trajet.push_back(noeudorigine);
 	}
 
 	return destinationIdeale;
