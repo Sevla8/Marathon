@@ -27,11 +27,11 @@ long Carte::trouverDestIdeale(long noeudorigine, double distancecible, double& d
 
 	std::unordered_map<long, double> distances0;
 	std::unordered_map<long, long> parents0;
-	this->graphe.dijkstra_point_a_multipoints_calcul(noeudorigine, distances0, parents0, distancecible+7000);
+	this->graphe.dijkstra_point_a_multipoints_calcul(noeudorigine, distances0, parents0, distancecible+CST);
 
 	std::unordered_map<long, double> distances1;
 	std::unordered_map<long, long> parents1;
-	this->graphe.dijkstra_multipoints_a_point_calcul(noeudorigine, distances1, parents1, distancecible+7000);
+	this->graphe.dijkstra_multipoints_a_point_calcul(noeudorigine, distances1, parents1, distancecible+CST);
 
 	std::unordered_map<long, double>::const_iterator iter0 = distances0.begin();
 	std::unordered_map<long, double>::const_iterator iter1 = distances1.begin();
