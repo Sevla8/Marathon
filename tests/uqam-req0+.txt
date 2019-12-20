@@ -1,0 +1,13 @@
+n16
+121
+n12 n18 n17 n16 n17 n18 n12 
+n5
+296
+n12 n6 n5 n6 n12 
+n9
+324
+n12 n13 n9 n13 n12 
+n5
+296
+n12 n6 n5 n6 n12 
+IMPOSSIBLE!

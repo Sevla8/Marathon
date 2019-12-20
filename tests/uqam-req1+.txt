@@ -1,0 +1,82 @@
+n12
+0
+n12 
+n18
+71
+n12 n18 n12 
+n16
+121
+n12 n18 n17 n16 n17 n18 n12 
+n16
+121
+n12 n18 n17 n16 n17 n18 n12 
+n8
+150
+n12 n8 n12 
+n14
+211
+n12 n13 n14 n13 n12 
+n3
+252
+n12 n18 n17 n16 n15 n3 n15 n16 n17 n18 n12 
+n5
+296
+n12 n6 n5 n6 n12 
+n5
+296
+n12 n6 n5 n6 n12 
+n9
+324
+n12 n13 n9 n13 n12 
+n7
+334
+n12 n6 n7 n6 n12 
+n7
+334
+n12 n6 n7 n6 n12 
+n10
+416
+n12 n13 n9 n10 n11 n14 n13 n12 
+IMPOSSIBLE!
+IMPOSSIBLE!
+n12
+0
+n12 
+n18
+71
+n12 n18 n12 
+n16
+121
+n12 n18 n17 n16 n17 n18 n12 
+n16
+121
+n12 n18 n17 n16 n17 n18 n12 
+n8
+150
+n12 n8 n12 
+n14
+211
+n12 n13 n14 n13 n12 
+n3
+252
+n12 n18 n17 n16 n15 n3 n15 n16 n17 n18 n12 
+n9
+324
+n12 n13 n9 n13 n12 
+n9
+324
+n12 n13 n9 n13 n12 
+n9
+324
+n12 n13 n9 n13 n12 
+n19
+385
+n12 n13 n14 n19 n14 n13 n12 
+n19
+385
+n12 n13 n14 n19 n14 n13 n12 
+n10
+416
+n12 n13 n9 n10 n11 n14 n13 n12 
+IMPOSSIBLE!
+IMPOSSIBLE!
